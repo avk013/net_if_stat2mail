@@ -13,7 +13,7 @@ using System.Windows.Forms;
 namespace net_if_stat2mail
 {
     public partial class Form1 : Form
-    {public string path=@"e:\!\";
+    {public string path=@"e:\!\";//+net_if_stat2mail.cfg
         public Form1()
         {
             InitializeComponent();
@@ -50,10 +50,14 @@ namespace net_if_stat2mail
            (//netI.NetworkInterfaceType != NetworkInterfaceType.Ethernet ||
             netI.OperationalStatus != OperationalStatus.Up)) continue;
             name = (netI.Name+"        ").Substring(0,8);
-            rx_byte = netI.GetIPv4Statistics().BytesSent.ToString();
-            tx_byte = netI.GetIPv4Statistics().BytesReceived.ToString();
-            rx_packet = netI.GetIPv4Statistics().UnicastPacketsSent.ToString();
-            tx_packet = netI.GetIPv4Statistics().UnicastPacketsReceived.ToString();
+            rx_byte = "                  "+netI.GetIPv4Statistics().BytesSent.ToString();
+            rx_byte = rx_byte.Substring(rx_byte.Length - 18, 18);
+            tx_byte = "                  " + netI.GetIPv4Statistics().BytesReceived.ToString();//18 symb
+            tx_byte = tx_byte.Substring(tx_byte.Length - 18, 18);
+            rx_packet = "                  " + netI.GetIPv4Statistics().UnicastPacketsSent.ToString();
+            rx_packet = rx_packet.Substring(rx_packet.Length - 18, 18);
+            tx_packet = "                  " + netI.GetIPv4Statistics().UnicastPacketsReceived.ToString();
+            tx_packet = tx_packet.Substring(tx_packet.Length - 18, 18);
                 //
                 string ip_addr="";
                 foreach (var uniIpAddrInfo in netI.GetIPProperties().UnicastAddresses.Where(x => netI.GetIPProperties().GatewayAddresses.Count > 0))
@@ -72,25 +76,20 @@ namespace net_if_stat2mail
             string[] m_en = {"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
             for (int i = 0; i < 12; i++) s=s.Replace(m_ru[i], m_en[i]);
             //формируем имя файла
-            label1.Text = Environment.MachineName + "_" + s+ "_" + UpTime.ToString().Remove(UpTime.ToString().LastIndexOf("."));
-            fn = Environment.MachineName + "_" + s + "_" + UpTime.ToString().Remove(UpTime.ToString().LastIndexOf("."));
+            string mname = Environment.MachineName, upti = UpTime.ToString().Remove(UpTime.ToString().LastIndexOf("."));
+            label1.Text = mname + "_" + s+ "_" + upti;
+            fn = mname + "_" + s + "_" + upti;
             fn = fn.Replace(":", "_");
             fn += ".txt";
             File.WriteAllText(@path+@fn,data);
             //отправляем файл на почту...
             send_mail(@path + @fn);
-        }
+            button1.Text += "ok";}
         public TimeSpan UpTime
-        {
-            get
-            {
-                using (var uptime = new PerformanceCounter("System", "System Up Time"))
-                {
-                    uptime.NextValue();       //Call this an extra time before reading its value
-                    return TimeSpan.FromSeconds(uptime.NextValue());
-                }
-            }
-        }
+        {get
+            {using (var uptime = new PerformanceCounter("System", "System Up Time"))
+                {uptime.NextValue();       //Call this an extra time before reading its value
+                 return TimeSpan.FromSeconds(uptime.NextValue());}}}
         public void send_mail(string attach)
         {
             if (File.Exists(@path + "net_if_stat2mail.cfg")){            
@@ -128,18 +127,7 @@ namespace net_if_stat2mail
 
         private void button3_Click(object sender, EventArgs e)
         {
-            string data = "", fn = "";
-            //скидываем в файл
-            string s = DateTime.Now.ToString("dd-MMMM-yyyy_HH-mm");
-            string[] m_ru = { "января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря" };
-            string[] m_en = { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
-            for (int i = 0; i < 12; i++) s = s.Replace(m_ru[i], m_en[i]);
-            //формируем имя файла
-            label1.Text = Environment.MachineName + "_" + s + "_" + UpTime.ToString().Remove(UpTime.ToString().LastIndexOf("."));
-            fn = Environment.MachineName + "_" + s + "_" + UpTime.ToString().Remove(UpTime.ToString().LastIndexOf("."));
-            fn = fn.Replace(":", "_");
-            fn += ".txt";
-            File.WriteAllText(@path + @fn, data);
+            
         }
     }
  
